@@ -18,12 +18,16 @@ with st.sidebar:
     if os.getenv('HF_TOKEN') != None:
         st.success('API key already provided!', icon='✅')
         HF_TOKEN = os.getenv('HF_TOKEN')
+        HF_TOKEN = st.secrets['HF_TOKEN']
     else:
         HF_TOKEN = st.text_input('Enter HF API token:', type='password')
+        os.environ['HF_TOKEN'] = HF_TOKEN
+        
         if not (HF_TOKEN.startswith('hf_')):
             st.warning('Please enter your credentials!', icon='⚠️')
         else:
             st.success('Proceed to entering your prompt message!', icon='👉')
+    HF_TOKEN = st.secrets['HF_TOKEN']
     os.environ['HF_TOKEN'] = HF_TOKEN
 
     st.subheader('Models and parameters')
