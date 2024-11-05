@@ -2,4 +2,4 @@ huggingface-hub
 
 streamlit
 
-dotenv
+python-dotenv
