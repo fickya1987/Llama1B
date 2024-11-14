@@ -134,7 +134,7 @@ elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.s
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             stream = client.chat.completions.create(
-                model="google/gemma-2-2b-it",
+                model="google/gemma-1.1-2b-it",
                 messages=st.session_state.messages_gemma,
                 max_tokens=max_length,
                 temperature=temperature,
