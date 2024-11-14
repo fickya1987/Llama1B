@@ -37,15 +37,18 @@ with st.sidebar:
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=20, max_value=2040, value=2000, step=5)
 
-# Initialize message histories for both models
+# init message history for models
 if "messages_llama" not in st.session_state:
     st.session_state.messages_llama = []
+    st.session_state.messages_llama = [{"role": "assistant", "content": "How may I assist you today?"}]
 if "messages_phi" not in st.session_state:
     st.session_state.messages_phi = []
+    st.session_state.messages_phi = [{"role": "assistant", "content": "How may I assist you today?"}]
 if "messages_gemma" not in st.session_state:
     st.session_state.messages_gemma = []
+    st.session_state.messages_gemma = [{"role": "assistant", "content": "How may I assist you today?"}]
 
-# Display chat messages for the selected model
+# display logic, when model changes -> content changes
 if model_choice == 'Llama 3.2 : 1B':
     messages_to_display = st.session_state.messages_llama
 elif model_choice =='Phi-3.5':
@@ -67,7 +70,7 @@ def clear_chat_history():
         
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
-# User prompt
+# user prompt logic
 if prompt := st.chat_input():
     if model_choice == 'Llama 3.2 : 1B':
         st.session_state.messages_llama.append({"role": "user", "content": prompt})
@@ -83,7 +86,7 @@ if prompt := st.chat_input():
             st.write(prompt)
 
 
-# Generate a new response only if the last message is from the user
+# gen a new response from slm if last msg is from user
 if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.session_state.messages_llama[-1]["role"] == "user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
