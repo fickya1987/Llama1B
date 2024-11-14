@@ -7,22 +7,19 @@ load_dotenv()
 
 client = InferenceClient(api_key=os.getenv('HF_TOKEN'))
 
-#code below is streamlit code , can ignore if youre not interested in frontend logic 
-
-
-st.set_page_config(page_title="🦙💬 Llama 3.2 Chatbot")
+st.set_page_config(page_title="💬 SLM-POC")
 
 with st.sidebar:
-    st.title('🦙💬 Llama 3.2 Chatbot')
-    st.write('This chatbot is created using the open-source Llama 3.2 LLM model from Meta.')
-    if os.getenv('HF_TOKEN') != None:
+    st.title('💬 Small Language Models - POC')
+    st.write('This chatbot is created using various Small Language Models such as Llama 3.2 , Gemma 2 , Phi 3.5 , etc. ')
+    if os.getenv('HF_TOKEN') is not None:
         st.success('API key already provided!', icon='✅')
         HF_TOKEN = os.getenv('HF_TOKEN')
         HF_TOKEN = st.secrets['HF_TOKEN']
     else:
         HF_TOKEN = st.text_input('Enter HF API token:', type='password')
         os.environ['HF_TOKEN'] = HF_TOKEN
-        
+
         if not (HF_TOKEN.startswith('hf_')):
             st.warning('Please enter your credentials!', icon='⚠️')
         else:
@@ -31,60 +28,127 @@ with st.sidebar:
     os.environ['HF_TOKEN'] = HF_TOKEN
 
     st.subheader('Models and parameters')
-    st.write('Model')
+    model_choice = st.selectbox(
+        "Select the Model:",
+        ('Llama 3.2 : 1B', 'Phi-3.5' , 'Gemma 2 : 2B')
+    )
 
-    
     temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0, value=0.1, step=0.01)
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=20, max_value=2040, value=2000, step=5)
 
+# Initialize message histories for both models
+if "messages_llama" not in st.session_state:
+    st.session_state.messages_llama = []
+if "messages_phi" not in st.session_state:
+    st.session_state.messages_phi = []
+if "messages_gemma" not in st.session_state:
+    st.session_state.messages_gemma = []
 
-#code above is streamlit code to load HF TOKEN
+# Display chat messages for the selected model
+if model_choice == 'Llama 3.2 : 1B':
+    messages_to_display = st.session_state.messages_llama
+elif model_choice =='Phi-3.5':
+    messages_to_display = st.session_state.messages_phi
+elif model_choice == 'Gemma 2 : 2B':
+    messages_to_display = st.session_state.messages_gemma
 
-
-if "messages" not in st.session_state.keys():
-    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
-
-# disp or clear chat messages
-for message in st.session_state.messages:
+for message in messages_to_display:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
 def clear_chat_history():
-    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+    if model_choice == 'Llama 3.2 : 1B':
+        st.session_state.messages_llama = []
+    elif model_choice == 'Phi-3.5':
+        st.session_state.messages_phi = []
+    elif model_choice == 'Gemma 2 : 2B':
+        st.session_state.messages_gemma = []
+        
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
-# user prompt
+# User prompt
 if prompt := st.chat_input():
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
+    if model_choice == 'Llama 3.2 : 1B':
+        st.session_state.messages_llama.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
+    elif model_choice == 'Phi-3.5':
+        st.session_state.messages_phi.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
+    elif model_choice =='Gemma 2 : 2B':
+        st.session_state.messages_gemma.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
 
-# we have to generate a new response if the last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant":
+
+# Generate a new response only if the last message is from the user
+if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.session_state.messages_llama[-1]["role"] == "user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            
-            # preparing msg for model
             stream = client.chat.completions.create(
                 model="meta-llama/Llama-3.2-1B-Instruct",
-                messages=st.session_state.messages,
+                messages=st.session_state.messages_llama,
                 max_tokens=max_length,
                 temperature=temperature,
                 top_p=top_p,
                 stream=True
             )
-            
-            
+
             placeholder = st.empty()
             full_response = ''
-
-            # output streaming
             for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
                     full_response += chunk.choices[0].delta.content
                     placeholder.markdown(full_response)
 
-            # adding response to state
-            message = {"role": "assistant", "content": full_response}
-            st.session_state.messages.append(message)
+            if full_response.strip():
+                message = {"role": "assistant", "content": full_response}
+                st.session_state.messages_llama.append(message)
+
+elif model_choice == 'Phi-3.5' and st.session_state.messages_phi and st.session_state.messages_phi[-1]["role"] == "user":
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            stream = client.chat.completions.create(
+                model="microsoft/Phi-3.5-mini-instruct",
+                messages=st.session_state.messages_phi,
+                max_tokens=max_length,
+                temperature=temperature,
+                top_p=top_p,
+                stream=True
+            )
+
+            placeholder = st.empty()
+            full_response = ''
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+                    placeholder.markdown(full_response)
+
+            if full_response.strip():
+                message = {"role": "assistant", "content": full_response}
+                st.session_state.messages_phi.append(message)
+
+elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.session_state.messages_gemma[-1]["role"] == "user":
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            stream = client.chat.completions.create(
+                model="google/gemma-2-2b-it",
+                messages=st.session_state.messages_gemma,
+                max_tokens=max_length,
+                temperature=temperature,
+                top_p=top_p,
+                stream=True
+            )
+
+            placeholder = st.empty()
+            full_response = ''
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+                    placeholder.markdown(full_response)
+
+            if full_response.strip():
+                message = {"role": "assistant", "content": full_response}
+                st.session_state.messages_gemma.append(message)

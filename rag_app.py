@@ -34,9 +34,9 @@ with st.sidebar:
 
     temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0, value=0.1, step=0.01)
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
-    max_length = st.sidebar.slider('max_length', min_value=20, max_value=80, value=50, step=5)
+    max_length = st.sidebar.slider('max_length', min_value=20, max_value=2040, value=100, step=5)
 
-    
+
     # uploading doc functionality
     uploaded_file = st.file_uploader("Upload a document (PDF, DOCX, TXT)", type=["pdf", "docx", "txt"])
     if uploaded_file is not None:
@@ -101,7 +101,8 @@ st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
 # user prompt goes here
 if prompt := st.chat_input():
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", 
+                                      "content": " You are a Chatbot You have to answer questions based on your knowledge or if the prompt is relevant to the document uploaded, answer based on document. Provide a confidence score with every response. Prompt is: {prompt}"})
     with st.chat_message("user"):
         st.write(prompt)
 
