@@ -3,3 +3,5 @@ huggingface-hub
 streamlit
 
 python-dotenv
+
+langchain
