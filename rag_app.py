@@ -164,7 +164,12 @@ if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.s
 
                 full_response = response["result"]
                 st.write(full_response)
-                st.session_state.messages_llama.append({"role": "system", "content": 'Use document as context to answer the questions. Answer the question in two-three lines. DO NOT generate helpful questions or answers.'})
+                st.session_state.messages_llama.append({"role": "system", "content": '''
+                Use the document to answer the questions.
+                If you don't know the answer, just say that you don't know. Do not generate other questions.
+                Use three sentences maximum and keep the answer as concise as possible.
+                
+                '''})
                 st.session_state.messages_llama.append({"role": "assistant", "content": full_response})
 
 elif model_choice == 'Phi-3.5' and st.session_state.messages_phi and st.session_state.messages_phi[-1]["role"] == "user":
@@ -209,7 +214,11 @@ elif model_choice == 'Phi-3.5' and st.session_state.messages_phi and st.session_
                 response = qa_chain({"query": prompt})
                 full_response = response["result"]
                 st.write(full_response)
-                st.session_state.messages_phi.append({"role": "system", "content": 'Use document as context to answer the questions. Answer the question in two-three lines. Do not respond with anything else. Do not generate further questions.'})
+                st.session_state.messages_phi.append({"role": "system", "content": '''
+                Use the document to answer the questions.
+                If you don't know the answer, just say that you don't know. Do not generate other questions.
+                Use three sentences maximum and keep the answer as concise as possible.
+                '''})
                 st.session_state.messages_phi.append({"role": "assistant", "content": full_response})
 
 elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.session_state.messages_gemma[-1]["role"] == "user":
