@@ -3,7 +3,7 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 import tempfile
-from langchain.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.vectorstores import FAISS
@@ -39,7 +39,7 @@ with st.sidebar:
         "Select the Model:",
         ('Llama 3.2 : 1B', 'Phi-3.5' , 'Gemma 2 : 2B')
     )
-
+    
     temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0, value=0.1, step=0.01)
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=20, max_value=2040, value=2000, step=5)
@@ -53,6 +53,7 @@ if "messages_phi" not in st.session_state:
     st.session_state.messages_phi = [{"role": "assistant", "content": "How may I assist you today?"}]
 if "messages_gemma" not in st.session_state:
     st.session_state.messages_gemma = []
+    
     st.session_state.messages_gemma = [{"role": "assistant", "content": "How may I assist you today?"}]
 
 # Display chat messages for the selected model
@@ -77,7 +78,7 @@ def clear_chat_history():
         
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 with st.sidebar:
-# File uploader for RAG functionality
+# file uploading logic
     uploaded_file = st.file_uploader("Upload a document (PDF, DOCX, TXT)", type=["pdf", "docx", "txt"])
     if uploaded_file is not None:
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -119,7 +120,32 @@ if prompt := st.chat_input():
 if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.session_state.messages_llama[-1]["role"] == "user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            qa_chain = RetrievalQA.from_chain_type(
+
+
+            #no doc uploaded
+            if uploaded_file is None:
+                stream = client.chat.completions.create(
+                model="meta-llama/Llama-3.2-1B-Instruct",
+                messages=st.session_state.messages_llama,
+                max_tokens=max_length,
+                temperature=temperature,
+                top_p=top_p,
+                stream=True
+                )
+                
+                placeholder = st.empty()
+                full_response = ''
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        full_response += chunk.choices[0].delta.content
+                        placeholder.markdown(full_response)
+
+                if full_response.strip():
+                    message = {"role": "assistant", "content": full_response}
+                    st.session_state.messages_llama.append(message)
+
+            else:
+                qa_chain = RetrievalQA.from_chain_type(
                 llm=HuggingFaceEndpoint(
                     repo_id="meta-llama/Llama-3.2-1B-Instruct",
                     
@@ -130,48 +156,100 @@ if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.s
                 chain_type="stuff",
                 retriever=vector_store.as_retriever()
             )
-            response = qa_chain({"query": prompt})
-            full_response = response["result"]
-            st.write(full_response)
-            st.session_state.messages_llama.append({"role": "system", "content": 'Use the document as context to answer the questions. Answer the question in a two-three lines. Do not respond with anything else. Only the Answer.'})
-            st.session_state.messages_llama.append({"role": "assistant", "content": full_response})
+                response = qa_chain({"query": prompt})
+
+
+                full_response = response["result"]
+                st.write(full_response)
+                st.session_state.messages_llama.append({"role": "system", "content": 'Use document as context to answer the questions. Answer the question in a two-three lines. Do not respond with anything else. Only the Answer. Dont generate further questions or answers.'})
+                st.session_state.messages_llama.append({"role": "assistant", "content": full_response})
 
 elif model_choice == 'Phi-3.5' and st.session_state.messages_phi and st.session_state.messages_phi[-1]["role"] == "user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            qa_chain = RetrievalQA.from_chain_type(
-                llm=HuggingFaceEndpoint(
-                    repo_id="microsoft/Phi-3.5-mini-instruct",
-                    
-                    temperature=temperature,
-                    top_p=top_p,
-                    huggingfacehub_api_token=os.getenv('HF_TOKEN'),
-                ),
-                chain_type="stuff",
-                retriever=vector_store.as_retriever()
-            )
-            response = qa_chain({"query": prompt})
-            full_response = response["result"]
-            st.write(full_response)
-            st.session_state.messages_phi.append({"role": "system", "content": 'Use the document as context to answer the questions. Answer the question in a two-three lines. Do not respond with anything else. Only the Answer.'})
-            st.session_state.messages_phi.append({"role": "assistant", "content": full_response})
+
+            if uploaded_file is None:
+                stream = client.chat.completions.create(
+                model="microsoft/Phi-3.5-mini-instruct",
+                messages=st.session_state.messages_phi,
+                max_tokens=max_length,
+                temperature=temperature,
+                top_p=top_p,
+                stream=True
+                )
+                
+                placeholder = st.empty()
+                full_response = ''
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        full_response += chunk.choices[0].delta.content
+                        placeholder.markdown(full_response)
+
+                if full_response.strip():
+                    message = {"role": "assistant", "content": full_response}
+                    st.session_state.messages_phi.append(message)
+
+            else: 
+                qa_chain = RetrievalQA.from_chain_type(
+                    llm=HuggingFaceEndpoint(
+                        repo_id="microsoft/Phi-3.5-mini-instruct",
+                        
+                        temperature=temperature,
+                        top_p=top_p,
+                        huggingfacehub_api_token=os.getenv('HF_TOKEN'),
+                    ),
+                    chain_type="stuff",
+                    retriever=vector_store.as_retriever()
+                )
+
+                response = qa_chain({"query": prompt})
+                full_response = response["result"]
+                st.write(full_response)
+                st.session_state.messages_phi.append({"role": "system", "content": 'Use document as context to answer the questions. Answer the question in a two-three lines. Do not respond with anything else. Do not generate further questions.'})
+                st.session_state.messages_phi.append({"role": "assistant", "content": full_response})
 
 elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.session_state.messages_gemma[-1]["role"] == "user":
+    st.write('⚠️ If you get Error: Clear chat history and try again.')
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            qa_chain = RetrievalQA.from_chain_type(
-                llm=HuggingFaceEndpoint(
-                    repo_id="google/gemma-1.1-2b-it",
-                    
-                    temperature=temperature,
-                    top_p=top_p,
-                    huggingfacehub_api_token=os.getenv('HF_TOKEN'),
-                ),
-                chain_type="stuff",
-                retriever=vector_store.as_retriever()
-            )
-            response = qa_chain({"query": prompt})
-            full_response = response["result"]
-            st.write(full_response)
-            st.session_state.messages_gemma.append({"role": "system", "content": 'Use the document as context to answer the questions. Answer the question in a two-three lines. Do not respond with anything else. Only the Answer.'})
-            st.session_state.messages_gemma.append({"role": "assistant", "content": full_response})
+
+            if uploaded_file is None:
+                stream = client.chat.completions.create(
+                model="google/gemma-1.1-2b-it",
+                messages=st.session_state.messages_gemma,
+                max_tokens=max_length,
+                temperature=temperature,
+                top_p=top_p,
+                stream=True
+                )
+                
+                placeholder = st.empty()
+                full_response = ''
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        full_response += chunk.choices[0].delta.content
+                        placeholder.markdown(full_response)
+
+                if full_response.strip():
+                    message = {"role": "assistant", "content": full_response}
+                    st.session_state.messages_gemma.append(message)
+
+
+            else:     
+
+                qa_chain = RetrievalQA.from_chain_type(
+                    llm=HuggingFaceEndpoint(
+                        repo_id="google/gemma-1.1-2b-it",
+                        
+                        temperature=temperature, #cannot set to 0, throws error
+                        top_p=top_p,
+                        huggingfacehub_api_token=os.getenv('HF_TOKEN'),
+                    ),
+                    chain_type="stuff",
+                    retriever=vector_store.as_retriever()
+                )
+                response = qa_chain({"query": prompt})
+                full_response = response["result"]
+                st.write(full_response)
+                st.session_state.messages_gemma.append({"role": "system", "content": 'Use the document as context to answer the questions. Answer the question in a two-three lines. Do not respond with anything else. Only the Answer.'})
+                st.session_state.messages_gemma.append({"role": "assistant", "content": full_response})

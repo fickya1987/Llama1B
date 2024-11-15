@@ -134,6 +134,7 @@ elif model_choice == 'Phi-3.5' and st.session_state.messages_phi and st.session_
                 st.session_state.messages_phi.append(message)
 
 elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.session_state.messages_gemma[-1]["role"] == "user":
+    st.write('⚠️ If you get Error: Clear chat history and try again.')
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             stream = client.chat.completions.create(
