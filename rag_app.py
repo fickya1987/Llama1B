@@ -148,7 +148,7 @@ if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.s
                 qa_chain = RetrievalQA.from_chain_type(
                 llm=HuggingFaceEndpoint(
                     repo_id="meta-llama/Llama-3.2-1B-Instruct",
-                    
+                    max_length = max_length,
                     temperature=temperature,
                     top_p=top_p,
                     huggingfacehub_api_token=os.getenv('HF_TOKEN'),
