@@ -12,7 +12,6 @@ from langchain_huggingface import HuggingFaceEndpoint
 
 load_dotenv()
 
-
 client = InferenceClient(api_key=os.getenv('HF_TOKEN'))
 
 st.set_page_config(page_title="🦙💬 Llama 3.2 Chatbot")

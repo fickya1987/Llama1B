@@ -40,7 +40,7 @@ with st.sidebar:
         ('Llama 3.2 : 1B', 'Phi-3.5' , 'Gemma 2 : 2B')
     )
     
-    temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0, value=0.01, step=0.01)
     top_p = st.sidebar.slider('top_p', min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     max_length = st.sidebar.slider('max_length', min_value=20, max_value=2040, value=2000, step=5)
 
@@ -123,7 +123,6 @@ if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.s
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
 
-
             #no doc uploaded
             if uploaded_file is None:
                 stream = client.chat.completions.create(
@@ -154,6 +153,7 @@ if model_choice == 'Llama 3.2 : 1B' and st.session_state.messages_llama and st.s
                     max_length = max_length,                         #max length could be static, to avoid over generation
                     temperature=temperature,
                     top_p=top_p,
+                    top_k = 5,
                     huggingfacehub_api_token=os.getenv('HF_TOKEN'),
                 ),
                 chain_type="stuff",
@@ -205,6 +205,7 @@ elif model_choice == 'Phi-3.5' and st.session_state.messages_phi and st.session_
                         
                         temperature=temperature, 
                         top_p=top_p,
+                        top_k = 5,
                         huggingfacehub_api_token=os.getenv('HF_TOKEN'),
                     ),
                     chain_type="stuff",
@@ -256,6 +257,7 @@ elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.s
                         
                         temperature=temperature, #cannot set to 0, throws error
                         top_p=top_p,
+                        top_k = 5,
                         huggingfacehub_api_token=os.getenv('HF_TOKEN'),
                     ),
                     chain_type="stuff",
