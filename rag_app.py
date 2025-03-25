@@ -18,7 +18,7 @@ st.set_page_config(page_title="💬 SLM-POC")
 
 with st.sidebar:
     st.title('💬 Small Language Models - POC')
-    st.write('This chatbot is created using various Small Language Models such as Llama 3.2, Gemma 2, Phi 3.5, DeepSeek-V3, and DeepSeek-R1.')
+    st.write('This chatbot is created using various Language Models such as Llama 3.2, Gemma 2, Gemma 3, Phi 3.5, DeepSeek-V3, and DeepSeek-R1.')
     if os.getenv('HF_TOKEN') is not None:
         st.success('API key already provided!', icon='✅')
         HF_TOKEN = os.getenv('HF_TOKEN')
@@ -37,7 +37,7 @@ with st.sidebar:
     st.subheader('Models and parameters')
     model_choice = st.selectbox(
         "Select the Model:",
-        ('Llama 3.2 : 1B', 'Phi-3.5', 'Gemma 2 : 2B', 'DeepSeek-V3-0324', 'DeepSeek-R1')
+        ('Llama 3.2 : 1B', 'Phi-3.5', 'Gemma 2 : 2B', 'Gemma 3 : 27B', 'DeepSeek-V3-0324', 'DeepSeek-R1')
     )
     
     temperature = st.sidebar.slider('temperature', min_value=0.01, max_value=1.0, value=0.01, step=0.01)
@@ -54,6 +54,9 @@ if "messages_phi" not in st.session_state:
 if "messages_gemma" not in st.session_state:
     st.session_state.messages_gemma = []
     st.session_state.messages_gemma = [{"role": "assistant", "content": "How may I assist you today?"}]
+if "messages_gemma3" not in st.session_state:
+    st.session_state.messages_gemma3 = []
+    st.session_state.messages_gemma3 = [{"role": "assistant", "content": "How may I assist you today?"}]
 if "messages_deepseek_v3" not in st.session_state:
     st.session_state.messages_deepseek_v3 = []
     st.session_state.messages_deepseek_v3 = [{"role": "assistant", "content": "How may I assist you today?"}]
@@ -68,6 +71,8 @@ elif model_choice == 'Phi-3.5':
     messages_to_display = st.session_state.messages_phi
 elif model_choice == 'Gemma 2 : 2B':
     messages_to_display = st.session_state.messages_gemma
+elif model_choice == 'Gemma 3 : 27B':
+    messages_to_display = st.session_state.messages_gemma3
 elif model_choice == 'DeepSeek-V3-0324':
     messages_to_display = st.session_state.messages_deepseek_v3
 elif model_choice == 'DeepSeek-R1':
@@ -85,6 +90,8 @@ def clear_chat_history():
         st.session_state.messages_phi = []
     elif model_choice == 'Gemma 2 : 2B':
         st.session_state.messages_gemma = []
+    elif model_choice == 'Gemma 3 : 27B':
+        st.session_state.messages_gemma3 = []
     elif model_choice == 'DeepSeek-V3-0324':
         st.session_state.messages_deepseek_v3 = []
     elif model_choice == 'DeepSeek-R1':
@@ -128,6 +135,10 @@ if prompt := st.chat_input():
             st.write(prompt)
     elif model_choice == 'Gemma 2 : 2B':
         st.session_state.messages_gemma.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
+    elif model_choice == 'Gemma 3 : 27B':
+        st.session_state.messages_gemma3.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.write(prompt)
     elif model_choice == 'DeepSeek-V3-0324':
@@ -275,6 +286,48 @@ elif model_choice == 'Gemma 2 : 2B' and st.session_state.messages_gemma and st.s
                 st.write(full_response)
                 st.session_state.messages_gemma.append({"role": "system", "content": 'Use the document as context to answer the questions. Answer the question in two-three lines. Do not respond with anything else. Only the Answer.'})
                 st.session_state.messages_gemma.append({"role": "assistant", "content": full_response})
+
+elif model_choice == 'Gemma 3 : 27B' and st.session_state.messages_gemma3 and st.session_state.messages_gemma3[-1]["role"] == "user":
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            if uploaded_file is None:
+                stream = client.chat.completions.create(
+                    model="google/gemma-3-27b-it",
+                    messages=st.session_state.messages_gemma3,
+                    max_tokens=max_length,
+                    temperature=temperature,
+                    top_p=top_p,
+                    stream=True
+                )
+                
+                placeholder = st.empty()
+                full_response = ''
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        full_response += chunk.choices[0].delta.content
+                        placeholder.markdown(full_response)
+
+                if full_response.strip():
+                    message = {"role": "assistant", "content": full_response}
+                    st.session_state.messages_gemma3.append(message)
+
+            else:
+                qa_chain = RetrievalQA.from_chain_type(
+                    llm=HuggingFaceEndpoint(
+                        repo_id="google/gemma-3-27b-it",
+                        temperature=temperature,
+                        top_p=top_p,
+                        top_k=5,
+                        huggingfacehub_api_token=os.getenv('HF_TOKEN'),
+                    ),
+                    chain_type="stuff",
+                    retriever=vector_store.as_retriever()
+                )
+                response = qa_chain({"query": prompt})
+                full_response = response["result"]
+                st.write(full_response)
+                st.session_state.messages_gemma3.append({"role": "system", "content": 'Use the document as context to answer the questions. Answer the question in two-three lines. Do not respond with anything else. Only the Answer.'})
+                st.session_state.messages_gemma3.append({"role": "assistant", "content": full_response})
 
 elif model_choice == 'DeepSeek-V3-0324' and st.session_state.messages_deepseek_v3 and st.session_state.messages_deepseek_v3[-1]["role"] == "user":
     with st.chat_message("assistant"):
