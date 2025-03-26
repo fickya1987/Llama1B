@@ -3,7 +3,8 @@ from utils.auth import initialize_auth
 from utils.session import initialize_session_state
 from components.sidebar import create_sidebar
 from components.chat import display_chat_messages, process_user_input
-from config.settings import APP_TITLE, APP_DESCRIPTION
+
+from configuration.settings import APP_TITLE, APP_DESCRIPTION
 
 
 def main():
