@@ -5,7 +5,7 @@ from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, Te
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.vectorstores import FAISS
-from config.settings import CHUNK_SIZE, CHUNK_OVERLAP
+from configuration.settings import CHUNK_SIZE, CHUNK_OVERLAP
 
 def load_document(uploaded_file):
     """Load a document from an uploaded file.
