@@ -2,7 +2,7 @@
 import streamlit as st
 from models.huggingface import HuggingFaceModel
 from utils.session import get_session_messages, add_message
-from config.settings import DOCUMENT_QA_SYSTEM_PROMPT
+from configuration.settings import DOCUMENT_QA_SYSTEM_PROMPT
 from utils.document import cleanup_temp_file
 
 def display_chat_messages(model_name):

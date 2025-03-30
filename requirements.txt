@@ -1,8 +1,13 @@
+# Core dependencies
+
 huggingface-hub
 
 streamlit
 
 python-dotenv
+
+# document handling 
+
 
 langchain
 
@@ -11,3 +16,4 @@ langchain-community
 pypdf
 
 faiss-cpu
+
