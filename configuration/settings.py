@@ -4,11 +4,20 @@
 APP_TITLE = "💬 SLM-POC"
 APP_DESCRIPTION = "This chatbot is created using various Small Language Models such as Llama 3.2, Gemma 2, Gemma 3, Phi 3.5, DeepSeek-V3, and DeepSeek-R1."
 
+
+
 # Model definitions
 MODELS = {
     "Llama 3.2 : 1B": {
         "repo_id": "meta-llama/Llama-3.2-1B-Instruct",
         "session_key": "messages_llama"
+    },
+
+    "Llama 3.2 : 3B": {
+
+        "repo_id": "meta-llama/Llama-3.2-3B-Instruct",
+        "session_key": "messages_llama_3B"
+
     },
     "Phi-3.5": {
         "repo_id": "microsoft/Phi-3.5-mini-instruct",
