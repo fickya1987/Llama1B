@@ -3,7 +3,7 @@ import os
 import streamlit as st
 from utils.session import clear_messages
 from utils.document import load_document, process_documents, cleanup_temp_file
-from config.settings import APP_DESCRIPTION, MODELS, DEFAULT_TEMPERATURE, DEFAULT_TOP_P, DEFAULT_MAX_LENGTH, SUPPORTED_DOC_TYPES
+from configuration.settings import APP_DESCRIPTION, MODELS, DEFAULT_TEMPERATURE, DEFAULT_TOP_P, DEFAULT_MAX_LENGTH, SUPPORTED_DOC_TYPES
 
 def create_sidebar():
     """Create and render the sidebar UI.
