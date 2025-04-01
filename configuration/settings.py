@@ -30,7 +30,7 @@ MODELS = {
         "session_key": "messages_phi"
     },
     "Gemma 2 : 2B": {
-        "repo_id": "google/gemma-1.1-2b-it",
+        "repo_id": "google/gemma-2-2b-it",
         "session_key": "messages_gemma"
     },
     "Gemma 3 : 27B": {
