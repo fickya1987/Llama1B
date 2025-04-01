@@ -37,14 +37,7 @@ MODELS = {
         "repo_id": "google/gemma-3-27b-it",
         "session_key": "messages_gemma3"
     },
-    "DeepSeek-V3-0324": {
-        "repo_id": "deepseek-ai/DeepSeek-V3-0324",
-        "session_key": "messages_deepseek_v3"
-    },
-    "DeepSeek-R1": {
-        "repo_id": "deepseek-ai/DeepSeek-R1",
-        "session_key": "messages_deepseek"
-    }
+   
 }
 
 # Default model parameters
