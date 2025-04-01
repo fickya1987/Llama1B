@@ -37,7 +37,11 @@ MODELS = {
         "repo_id": "google/gemma-3-27b-it",
         "session_key": "messages_gemma3"
     },
-   
+
+   "Qwen-32B" : {
+      "repo_id" : "Qwen/QwQ-32B",
+      "session_key" : "messages_qwen_32"
+   }
 }
 
 # Default model parameters
