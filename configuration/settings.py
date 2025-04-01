@@ -8,6 +8,12 @@ APP_DESCRIPTION = "This chatbot is created using various Small Language Models s
 
 # Model definitions
 MODELS = {
+
+   "zephyr-7b-beta":  {
+     "repo_id": "HuggingFaceH4/zephyr-7b-beta",
+     "session_key" : "messages_zephyr"
+    },
+    
     "Llama 3.2 : 1B": {
         "repo_id": "meta-llama/Llama-3.2-1B-Instruct",
         "session_key": "messages_llama"
