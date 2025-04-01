@@ -38,7 +38,7 @@ MODELS = {
         "session_key": "messages_gemma3"
     },
 
-   "Qwen-32B" : {
+   "Qwen-32B  (reasoning ) " : {
       "repo_id" : "Qwen/QwQ-32B",
       "session_key" : "messages_qwen_32"
    },
